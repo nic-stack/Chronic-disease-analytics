@@ -1,116 +1,65 @@
-Chronic Disease Analytics System: OLTP to OLAP
-Project Overview
-This project presents a comprehensive database solution designed to track, analyze, and respond to chronic disease trends, particularly within urban populations. It demonstrates the full lifecycle of data management, from transactional data capture (OLTP) to analytical insights (OLAP), enabling healthcare providers, researchers, and policymakers to make data-driven decisions.
+# Chronic Disease Analytics System: OLTP to OLAP
 
-Business Problem
-Chronic diseases like diabetes, hypertension, asthma, and heart disease are increasingly prevalent, especially in urban areas, influenced by lifestyle, environmental factors, and healthcare disparities. Health organizations require a robust system to monitor diagnosis rates, treatment plans, hospital visits, medication usage, and patient outcomes to improve public health, optimize resource allocation, and implement targeted interventions.
+**Author:** Nicolette Mtisi  
+*Originally completed as a team project ("Trio Analytics"). This repository is my copy of the work.*  
+**Tools:** PostgreSQL · SQL · Dimensional Modeling · ETL · Tableau
 
-Solution
-This project addresses the business problem by developing a dual-layered database system:
+## Overview
+This database solution tracks, analyzes and responds to **chronic disease trends** in urban populations. It covers the full data lifecycle, from **transactional data capture (OLTP)** to **analytical insight (OLAP)**, so that healthcare providers, researchers and policymakers can make data-driven decisions.
 
-Online Transaction Processing (OLTP) Database: For efficient day-to-day operations, recording granular patient data, diagnoses, treatments, and locations.
+## Business Problem
+Chronic diseases such as diabetes, hypertension, asthma and heart disease are rising, especially in cities, driven by lifestyle, the environment and gaps in access to care. Health organizations need a reliable system to monitor diagnosis rates, treatment plans, hospital visits, medication use and patient outcomes. With it, they can target interventions and allocate resources where they're needed most.
 
-Online Analytical Processing (OLAP) Data Warehouse: A dimensional model built for analytical queries, enabling fast and flexible reporting on chronic disease trends and treatment effectiveness.
+## Architecture
+```
+ OLTP (normalized, schema: public)          ETL (SQL)            OLAP (star schema, schema: warehouse)
+ ─────────────────────────────────   ─────────────────────►   ──────────────────────────────────────
+ person · disease · disease_type                                         dim_person
+ location · medicine · indication                                        dim_disease
+ race · diseased_patient                    clean, join,          dim_date ── fact_disease_diagnosis ── dim_medicine
+ race_disease_propensity                    reshape, load                    dim_location
+                                                                         dim_race
+```
 
-An Extract, Load, Transform (ELT) process is implemented using SQL to move and reshape data from the OLTP schema into the dimensional data warehouse.
+**1. OLTP database:** 9 normalized tables built for data integrity and efficient day-to-day transactions.
 
-Architecture & Data Flow
-The system is built using PostgreSQL, demonstrating a robust relational database foundation for both transactional and analytical workloads.
+**2. OLAP data warehouse:** a **star schema** with a central `fact_disease_diagnosis` table at the grain of *one patient diagnosis event*. Its six dimensions are `dim_date`, `dim_disease`, `dim_person`, `dim_location`, `dim_medicine` and `dim_race`.
 
-OLTP Schema:
+**3. ETL:** SQL scripts extract data from the OLTP schema, then clean, join and reshape it and load it into the warehouse.
 
-Designed with normalized tables (e.g., person, disease, location, medicine, indication, diseased_patient, race, disease_type, race_disease_propensity).
+**4. Analytics:** SQL queries run directly on the dimensional model, and the data is ready for BI tools like Tableau. See the presentation for the dashboards.
 
-Focuses on data integrity and transactional efficiency.
+## Example Analytical Questions
+- Which diseases are most common within each race group?
+- How effective are medicines by disease type?
+- Which cities have the highest average disease severity?
+- What is the propensity for each disease by race?
 
-See Disease Project (1).sql for schema creation and data population.
+The project also shows **integrity constraints** at work, for example updating a patient record after treatment completes. The presentation discusses how the design would scale on **AWS** (a batch plus real-time Lambda architecture) and **Snowflake**, and compares relational and NoSQL storage.
 
-Dimensional Model (OLAP Schema - warehouse):
+## How to Run
+1. Install **PostgreSQL** and connect with pgAdmin, DBeaver or `psql`.
+2. Run `chronic_disease_analytics.sql` from start to finish. It will:
+   - create and populate the OLTP tables
+   - create the `warehouse` schema and dimensional tables
+   - run the ETL into the star schema
+   - run the analytical queries
 
-Features a central fact_disease_diagnosis table at the grain of a single patient diagnosis event.
+## Business Value
+- **Targeted interventions:** find high-risk populations and geographic hotspots.
+- **Resource optimization:** allocate care based on how common and how severe diseases are.
+- **Treatment effectiveness:** support evidence-based decisions about therapies and medications.
+- **Policy support:** give policymakers data for public health initiatives.
 
-Supported by various dimension tables: dim_date, dim_disease, dim_person, dim_location, dim_medicine, dim_race.
+## Data Disclaimer
+All data in this project is **synthetic**, generated only to demonstrate the system's analytical capabilities. It is not real clinical data.
 
-Optimized for analytical querying and reporting.
+## Files
+| File | Description |
+|------|-------------|
+| `chronic_disease_analytics.sql` | OLTP schema, sample data, warehouse schema, ETL and analytical queries |
+| `chronic_disease_analytics_presentation.pptx` | Slides: ER diagram, dimensional model, dashboards and cloud architecture |
 
-ETL Process:
-
-SQL scripts within Disease Project (1).sql handle the transformation of data from the public (OLTP) schema to the warehouse (OLAP) schema.
-
-This includes data cleaning, joining, aggregation, and loading into the dimensional structure.
-
-Analytical Layer:
-
-Direct SQL queries on the dimensional model provide quick insights.
-
-The data is structured for easy integration with Business Intelligence (BI) tools like Tableau for dashboarding and visualization. (Refer to the presentation for visualization examples).
-
-Key Features & Capabilities
-Comprehensive Data Model: Captures essential information about patients, diseases, treatments, locations, and demographics.
-
-Data Population: Includes sample data to demonstrate functionality.
-
-Integrity Constraints: Ensures data quality and relationships are maintained.
-
-Analytical Queries: Provides examples of complex queries to extract insights, such as:
-
-Most common diseases by race.
-
-Medicine effectiveness by disease type.
-
-Cities with the highest average disease severity.
-
-Disease propensity by race.
-
-Dimensional Modeling: Transforms transactional data into a star schema for optimized analytical performance.
-
-Business Intelligence Integration: Data ready for visualization tools to create interactive dashboards.
-
-Technologies Used
-Database: PostgreSQL
-
-Query Language: SQL
-
-Data Modeling: OLTP (Normalized), OLAP (Dimensional Model/Star Schema)
-
-ETL: SQL-based transformations
-
-Presentation/Documentation: Microsoft PowerPoint
-
-How to Use (SQL Script)
-To run the SQL scripts:
-
-Install PostgreSQL: Ensure you have a PostgreSQL database server set up.
-
-Connect to a Database: Use a SQL client (like pgAdmin, DBeaver, or psql) to connect to your PostgreSQL instance.
-
-Execute Disease Project (1).sql: Run the script sequentially. It will:
-
-Create the OLTP tables.
-
-Populate the OLTP tables with sample data.
-
-Create the warehouse schema and its dimensional tables.
-
-Perform the ETL process to load data into the dimensional model.
-
-Execute various analytical queries.
-
-Insights & Business Value
-The analytical capabilities of this system provide significant business value by enabling:
-
-Targeted Interventions: Identifying high-risk populations or geographic hotspots.
-
-Resource Optimization: Efficient allocation of healthcare resources based on disease prevalence and severity.
-
-Treatment Effectiveness Analysis: Informing evidence-based decisions on therapies and medications.
-
-Policy Making: Supporting policymakers with data-driven intelligence for public health initiatives.
-
-Disclaimer
-The entire dataset used in this project is synthetic (artificially generated). It was created solely for the purpose of demonstrating the analytical capabilities of the system. The values presented in queries, dashboards, and visualizations are mock data designed to simulate realistic patterns and showcase the database and analytical tools' functionality. This project does not use real-world clinical data.
-
-Project Files
-Disease Project (1).sql: Contains all SQL scripts for OLTP schema creation, data population, OLAP schema creation, ETL, and analytical queries.
-
-sdm final project .pptx: The project presentation slides, including ER diagrams, dimensional models, and analytical visualizations.
+## Links
+- 📝 [Medium write-up](https://medium.com/@nicmtisi/chronic-care-analytics-revolutionizing-urban-health-with-data-d34cb11726d7)
+- 🌐 [Portfolio](https://nic-stack.github.io/NicoletteMtisi/) · [LinkedIn](https://www.linkedin.com/in/nicolette-mtisi)
